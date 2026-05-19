@@ -1,5 +1,5 @@
 # Aircraft-Sizing
-This repository will include all the code and files needed to make initial sizing and design choices for the AIAA Design Build Fly competition.
+This repository will provide simulations for selecting motor, proeller, and battery combinations for UAV's.
 
 Sparse Checkout recommended if you are low on storage space:
 
@@ -13,7 +13,6 @@ git config core.sparseCheckout true
 echo "README.md" >> .git/info/sparse-checkout
 echo "motor_check.py" >> .git/info/sparse-checkout
 echo "StrutureTest.py" >> .git/info/sparse-checkout
-echo "xfoil_example.py" >> .git/info/sparse-checkout
 echo "propeller_plots.py" >> .git/info/sparse-checkout
 echo "compare_motors.py" >> .git/info/sparse-checkout
 echo "outputPower.py" >> .git/info/sparse-checkout
@@ -25,9 +24,8 @@ echo "design_Transport/" >> .git/info/sparse-checkout
 echo "BMI_Chart/" >> .git/info/sparse-checkout
 echo "APC/" >> .git/info/sparse-checkout
 echo "aero_utils/" >> .git/info/sparse-checkout
-echo "dbf_airplane.ipynb" >> .git/info/sparse-checkout
 git pull origin main
 git branch --set-upstream-to=origin/main
 ``` 
 
-Property of CSULB's AIAA DBF team.
+Property of Benjamin Turnour.
