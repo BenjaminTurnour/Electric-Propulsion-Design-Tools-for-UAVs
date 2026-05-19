@@ -1,0 +1,399 @@
+# PARAMETRIC MODEL V1
+
+#-----------------------Fuslelage Design Parameters---------------------
+
+CFGPMTR                      fuselage:numXsect 6 
+DIMENSION fuselage:xloc      fuselage:numXsect 1  
+DIMENSION fuselage:zloc      fuselage:numXsect 1 
+DIMENSION fuselage:width     fuselage:numXsect 1 
+DIMENSION fuselage:height    fuselage:numXsect 1 
+DIMENSION fuselage:shape     fuselage:numXsect 1
+
+DESPMTR   fuselage:xloc      "0;  1.5; 2.7;  3.6;  4.8;  6;"
+DESPMTR   fuselage:zloc      "0;  0;  0;  0;   .05;   .15;"
+DESPMTR   fuselage:width     ".1;  .65;  .75;  .75;   .65;   0.2;"
+DESPMTR   fuselage:height    ".1;  .65;  .75;  .75;   .55;   0.2;"
+DESPMTR   fuselage:shape      "2;    2;    2;    2;     2;     2;"
+
+
+
+#-------------------------Wing design Parameters--------------------------
+DESPMTR wing:thick .12
+DESPMTR wing:camber .04
+DESPMTR wing:area 2
+DESPMTR wing:aspectRatio 12
+DESPMTR wing:sweep 0.0
+DESPMTR wing:dihedral 4
+DESPMTR wing:taper .7
+DESPMTR wing:rootChord .8
+SET wing:rootXloc fuselage:xloc[3]-(wing:rootChord/2) #(fuselage:xloc[2]+fuselage:xloc[3])/2
+SET wing:rootZloc -fuselage:height[3]/2
+
+#------------------------Horizontal tail design Parameters--------------------------
+DESPMTR htail:thick .11
+DESPMTR htail:camber .01
+DESPMTR htail:area .5
+DESPMTR htail:aspectRatio 8
+DESPMTR htail:sweep 0.0
+DESPMTR htail:dihedral 0.0
+DESPMTR htail:taper  0.75
+DESPMTR htail:rootChord .5
+SET htail:rootXloc fuselage:xloc[6]-htail:rootChord
+SET htail:rootZloc fuselage:zloc[6]
+
+#-----------------------Vertical tail design Parameters--------------------------
+DESPMTR vtail:thick 0.11
+DESPMTR vtail:area .5
+DESPMTR vtail:aspectRatio 2
+DESPMTR vtail:sweep 0.0
+DESPMTR vtail:taper  0.75
+DESPMTR vtail:rootChord .5
+SET vtail:rootXloc fuselage:xloc[6]-htail:rootChord
+SET vtail:rootZloc fuselage:zloc[6]
+
+
+
+#-----------------------------------wing set parameters
+set		wing:span	sqrt(wing:aspectRatio*wing:area)
+set 	wing:ctip 	wing:rootChord*wing:taper 
+set 	wing:xtip	wing:rootXloc+(wing:rootChord-wing:ctip)/4+wing:span/2*tand(wing:sweep)
+set 	wing:ztip 	wing:rootZloc+wing:span/2*tand(wing:dihedral)
+
+set 	htail:span	sqrt(htail:aspectRatio*htail:area)
+SET 	htail:ctip 	htail:rootChord*htail:taper
+SET 	htail:xtip 	htail:rootXloc+(htail:rootChord-htail:ctip)/4+htail:span/2*tand(htail:sweep)  
+SET 	htail:ztip 	htail:rootZloc+htail:span/2*tand(htail:dihedral)
+
+set 	vtail:span 	htail:rootZloc+sqrt(vtail:aspectRatio*vtail:area)
+SET     vtail:ctip  vtail:rootChord*vtail:taper
+SET     vtail:xtip  vtail:rootXloc+(vtail:rootChord-vtail:ctip)/4+vtail:span/2*tand(vtail:sweep)
+					
+
+
+
+#-------------------------------------FUSELAGE BUILD------------------------------------
+
+MARK
+	
+   #make nose
+   IFTHEN fuselage:width[1] eq 0 and fuselage:height[1] eq 0
+		point fuselage:xloc[1] 0 fuselage:zloc[1] eq 0
+
+   ELSE
+	UDPRIM supell rx fuselage:width[1]/2 ry fuselage:height[1]/2 n fuselage:shape[1]
+	rotatey 90 0 0
+	translate fuselage:xloc[1] 0 fuselage:zloc[1]
+	ENDIF
+      
+   #make fuselage
+   PATBEG j 4
+      set i j+1
+
+    
+       UDPRIM supell rx fuselage:height[i]/2 ry fuselage:width[i]/2 n fuselage:shape[i]   
+	rotatey 90 0 0
+	translate fuselage:xloc[i] 0 fuselage:zloc[i]
+
+   PATEND
+
+   #make nose 
+   IFTHEN fuselage:height[6] eq 0 and fuselage:width[6] eq 0
+		point fuselage:xloc[6] 0 fuselage:zloc[6] eq 0
+
+   ELSE
+	UDPRIM supell rx fuselage:height[6]/2 ry fuselage:width[6]/2 n fuselage:shape[6]
+	rotatey 90 0 0
+	translate fuselage:xloc[6] 0 fuselage:zloc[6]
+   ENDIF
+
+BLEND
+
+SET fuseAREA @area
+
+ATTRIBUTE capsGroup  $fuselage
+SELECT body
+
+ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+ATTRIBUTE capsIntent $fuselage
+ATTRIBUTE _name      $fuselage
+
+STORE fuselage
+
+
+
+
+#---------------------------------MAKE wing-------------------------------------
+
+MARK
+#Left Tip
+UDPRIM    naca  Thickness wing:thick  Camber wing:camber
+SCALE     wing:ctip
+ROTATEX   90        0         0
+TRANSLATE wing:xtip     wing:span/2    wing:ztip
+
+#root
+UDPRIM naca Thickness wing:thick Camber wing:camber 
+SCALE wing:rootChord
+ROTATEX 90 0 0
+TRANSLATE wing:rootXloc 0 wing:rootZloc  
+
+#Right Tip
+UDPRIM    naca  Thickness wing:thick  Camber wing:camber
+SCALE     wing:ctip
+ROTATEX   90        0         0
+TRANSLATE wing:xtip     -wing:span/2    wing:ztip
+
+RULE
+ATTRIBUTE capsGroup  $wing
+SELECT body
+
+ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+ATTRIBUTE capsIntent $wing
+ATTRIBUTE _name      $Wing 
+
+STORE wing 
+
+#---------------------------------Horizontal Tail--------------------------
+
+MARK
+
+#left tip
+UDPRIM    naca  Thickness htail:thick  Camber htail:camber
+SCALE     htail:ctip
+ROTATEX   90        0         0
+TRANSLATE htail:xtip    htail:span/2    htail:ztip
+
+# Root
+UDPRIM    naca  Thickness htail:thick  Camber htail:camber
+SCALE     htail:rootChord
+ROTATEX   90        0         0
+TRANSLATE htail:rootXloc    0    htail:rootZloc
+
+#right tip
+UDPRIM    naca  Thickness htail:thick  Camber htail:camber
+SCALE     htail:ctip
+ROTATEX   90        0         0
+TRANSLATE htail:xtip     -htail:span/2    htail:ztip
+BLEND
+
+ATTRIBUTE capsGroup  $htail
+SELECT body
+
+ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+ATTRIBUTE capsIntent $htail;tail
+ATTRIBUTE _name      $htail
+
+STORE htail
+
+
+#----------------------------------Vertical Tail-------------------------------------
+MARK
+#Root
+UDPRIM naca Thickness vtail:thick
+SCALE vtail:rootChord
+ROTATEX 90 0 0 
+TRANSLATE vtail:rootXloc 0 vtail:rootZloc
+
+# Tip
+UDPRIM naca Thickness vtail:thick
+SCALE vtail:ctip
+ROTATEX 90 0 0 
+TRANSLATE vtail:xtip+((1-vtail:taper)*vtail:rootChord) 0 vtail:span
+
+BLEND
+
+ATTRIBUTE capsGroup  $vtail
+SELECT body
+
+ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+ATTRIBUTE capsIntent $vtail;tail
+ATTRIBUTE _name      $vtail
+
+STORE vtail
+
+
+
+RESTORE fuselage
+RESTORE wing 
+subtract
+STORE fuselgae
+
+#-------------------------------MAKE duck space-------------------------------
+restore fuselage 
+
+set fymin @ymin
+set fymax @ymax
+
+STORE fuslage
+
+
+cylinder 1 -.25 0 1 -.25 .0833  .125
+       ATTRIBUTE capsGroup  $puck
+	   SELECT body
+   	   
+   	   ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+	   
+	 
+
+#--------------------------------make figures--------------
+box 0 0 0 .21 .19 .21
+STORE duck 
+cylinder 0 0 0 0 0 .0833  .125
+STORE puck
+
+
+
+#---------------------------puck space---------------------------
+
+#PATBEG duckY ((fymax-fymin)-.1)/.19
+   #PATBEG duckX (((fuselage:xloc[5]-fuselage:xloc[3])+.4)/.21)-1
+   
+   #SET yspace fymin+(.1)+((duckY-1))*.2
+   #SET xspace dfront+(duckX-1)*.22   
+      
+   #RESTORE puck
+   #TRANSLATE xspace yspace .105 
+   #RESTORE puck
+   #TRANSLATE xspace yspace .1884 
+      
+   #PATEND      
+      
+#PATEND
+
+set duckCount 0
+
+
+PATBEG i 3
+
+	set length fuselage:xloc[i+2]-fuselage:xloc[i+1]
+	set width .85*fuselage:width[i+2]
+	UDPRIM box dy width
+    TRANSLATE fuselage:xloc[i+1] 0 -.045	
+   	extrude length 0 0 
+    
+   	set dfront @xmin
+	set dback  @xmax
+	set dleft  @ymin
+	set dright @ymax
+	 
+   
+   
+
+	set duckLenX  0.21    
+	set duckStepX 0.22    
+
+	set duckLenY  0.19    
+	set duckStepY 0.20    
+	set marginX   0.03    
+	set marginY   0.05    
+
+	set useX (dback-dfront)-2*marginX
+	set useY (dright-dleft)-2*marginY
+
+	set nCols ((useX+(duckStepX-duckLenX))/duckStepX)   
+	set nRows ((useY+(duckStepY-duckLenY))/duckStepY)   
+
+	set gridX (nCols-1)*duckStepX+duckLenX
+	set gridY (nRows-1)*duckStepY+duckLenY
+
+	set x0 dfront+marginX+0.5*(useX-gridX)   
+	set y0 dleft+marginY+0.5*(useY-gridY)    
+   
+	
+
+	PATBEG row nRows
+  		PATBEG col nCols
+	
+    		set xspace x0+(col-1)*duckStepX
+    		set yspace y0+(row-1)*duckStepY
+     
+		
+           	box xspace yspace -0.045 .21 .19 .21
+   
+
+            set duckCount duckCount+1 
+           	
+           	ATTRIBUTE capsGroup  $duck
+			SELECT body
+
+           	ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+			ATTRIBUTE capsIntent $duck
+			ATTRIBUTE _name      $duck
+           
+  		PATEND
+	PATEND
+   
+   
+   PATEND
+   
+set maxPuck duckCount/3
+   	
+	#PATBEG duckY ((dright-dleft)-.1)/.19
+   		#PATBEG duckX ((dback-dfront)/.21)-1
+   
+   		#SET yspace fymin+(.1)+((duckY-1))*.2
+   		#SET xspace dfront+(duckX-1)*.22   
+      
+  	 	#RESTORE duck
+ 	  	#TRANSLATE 0.03+xspace yspace-.02 -.045 
+   
+        #set duckCount duckCount+1  
+        
+ 		#PATEND      
+     
+       
+	#PATEND
+   
+
+
+
+
+PATBEG i 4
+	SET j (i-1)
+	UDPRIM box dy fuselage:width[3]
+	translate (fuselage:xloc[2]+0.2)+0.26*j 0 (-fuselage:height[2]/2)*.7
+	restore fuselage
+	intersect
+	
+	set leftPuck @ymin 
+	set rightPuck @ymax
+	STORE line
+	PATBEG q (rightPuck-leftPuck)/(.25)
+       
+	   MARK
+	   cylinder (fuselage:xloc[2]+0.2)+0.26*j leftPuck+.14 (-fuselage:height[2]/2)*.75 (fuselage:xloc[2]+0.2)+0.26*j leftPuck+.14 ((-fuselage:height[2]/2)*.75)+.0833  .125
+       #translate (fuselage:xloc[2]+0.2)+0.26*j leftPuck+.14 (-fuselage:height[2]/2)*.75
+       ATTRIBUTE capsGroup  $puck
+	   SELECT body
+   	   
+   	   ATTRIBUTE capsAIM    $masstranAIM;astrosAIM
+	   
+
+       #restore puck 
+       #translate (fuselage:xloc[2]+0.2)+0.26*j leftPuck+.14 (-fuselage:height[2]/2)*.75+.0833
+   
+   	   #restore puck 
+       #translate (fuselage:xloc[2]+0.2)+0.26*j rightPuck-.14 (-fuselage:height[2]/2)*.75
+       #restore puck 
+       #translate (fuselage:xloc[2]+0.2)+0.26*j rightPuck-.14 (-fuselage:height[2]/2)*.75+.0833
+   
+   	PATEND
+   
+PATEND
+
+RESTORE fuselage
+
+ATTRIBUTE _trn $on
+SELECT BODY 
+
+
+RESTORE wing
+RESTORE htail
+RESTORE vtail
+
+#Outputs   
+OUTPMTR fuseAREA
+OUTPMTR duckAREA
+
+POINT 1.309871049395 -0.2100589638184 0.04337731476611
+

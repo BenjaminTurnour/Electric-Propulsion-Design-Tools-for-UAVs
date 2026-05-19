@@ -1,0 +1,65 @@
+Physics-Based Motor Model Usage Guide
+=====================================
+
+This guide describes how to use the PhysicsMotorModel system in the aero_utils library.
+
+------------------------------------------------------------
+1. File Format (CSV)
+------------------------------------------------------------
+
+CSV files should be placed in the 'motors/' folder.
+
+Each file should have this header row:
+
+motor_name,kv,resistance_mohm,no_load_current,voltage_min,voltage_max,current_limit,rpm_limit
+
+- resistance_mohm: resistance in milliohms (mΩ)
+- rpm_limit: can be left blank; it will be computed as kv * voltage_max
+
+Example row:
+
+AT5330,220,24,3,42,52,75,
+
+------------------------------------------------------------
+2. Loading Motors
+------------------------------------------------------------
+
+from aero_utils.physics_motor_parser import load_all_motor_models
+
+motors = load_all_motor_models("motors")
+
+for motor in motors:
+    print(motor.motor_name, motor.kv)
+
+------------------------------------------------------------
+3. Accessing Motor Model Data
+------------------------------------------------------------
+
+Each motor is a PhysicsMotorModel with methods:
+
+- estimate_current(rpm, torque)
+- estimate_voltage(rpm, torque)
+- estimate_power(rpm, torque)
+
+Example:
+
+motor = motors[0]
+rpm = 9000
+torque = 0.2
+amps = motor.estimate_current(rpm, torque)
+volts = motor.estimate_voltage(rpm, torque)
+watts = motor.estimate_power(rpm, torque)
+
+------------------------------------------------------------
+4. Plotting Methods
+------------------------------------------------------------
+
+Each model has the following plot methods:
+
+- motor.plot_power_vs_rpm([0.1, 0.2, 0.3])
+- motor.plot_current_vs_rpm([0.1, 0.2, 0.3])
+- motor.plot_voltage_vs_rpm([0.1, 0.2, 0.3])
+
+These plot over a range of RPMs from 10% to 100% of rpm_limit.
+
+------------------------------------------------------------

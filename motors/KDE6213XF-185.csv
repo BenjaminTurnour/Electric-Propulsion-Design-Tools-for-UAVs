@@ -1,0 +1,2 @@
+﻿motor_name,kv,resistance_mohm,no_load_current_AperV,voltage_min,voltage_max,current_limit,rpm_limit,weight_g
+KDE6213XF-185,185,75,.06,22,52,50,,415

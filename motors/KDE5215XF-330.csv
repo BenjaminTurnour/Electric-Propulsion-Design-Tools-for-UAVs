@@ -1,0 +1,2 @@
+﻿motor_name,kv,resistance_mohm,no_load_current_AperV,voltage_min,voltage_max,current_limit,rpm_limit,weight_g
+KDE5215XF-330,330,44,0.07,14.8,34.8,62,,360

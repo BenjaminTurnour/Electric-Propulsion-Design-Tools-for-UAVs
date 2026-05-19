@@ -1,0 +1,62 @@
+Airfoil Polar Usage Guide
+==========================
+
+This guide describes how to load and use airfoil polar files in the aero_utils framework.
+
+------------------------------------------------------------
+1. File Format
+------------------------------------------------------------
+
+Files should be placed in the 'polars/' folder and have a '.txt' extension.
+
+Each file should be a standard XFOIL polar file with at least these 7 columns:
+
+alpha  Cl  Cd  Cdp  Cm  xtr_top  xtr_bot
+
+Example (first few lines):
+
+-4.0   -0.4  0.026  0.020 -0.1  1.000  1.000
+-2.0   -0.2  0.021  0.018 -0.1  1.000  1.000
+...
+
+------------------------------------------------------------
+2. Loading Airfoils
+------------------------------------------------------------
+
+from aero_utils.xfoil_parser import load_all_polars
+
+airfoils = load_all_polars("polars")
+
+------------------------------------------------------------
+3. Airfoil Object and Methods
+------------------------------------------------------------
+
+Each airfoil is an AirfoilPolar object with:
+
+- .name
+- .alpha, .cl, .cd, .cm
+- .cl_cd()             → element-wise L/D
+- .max_l_over_d()      → maximum L/D value
+- .stall_angle()       → (alpha at max Cl, Cl value)
+
+Example:
+
+foil = airfoils[0]
+print(foil.name)
+print("Max L/D:", foil.max_l_over_d())
+print("Stall α:", foil.stall_angle()[0])
+
+------------------------------------------------------------
+4. Plotting (in main.py)
+------------------------------------------------------------
+
+import matplotlib.pyplot as plt
+
+for foil in airfoils:
+    plt.plot(foil.cd, foil.cl, label=foil.name)
+plt.xlabel("Cd")
+plt.ylabel("Cl")
+plt.legend()
+plt.grid(True)
+plt.title("Airfoil Drag Polars")
+plt.show()

@@ -1,0 +1,2 @@
+weight_g,415.000000
+thrust_N,velocity_m_s,power_W

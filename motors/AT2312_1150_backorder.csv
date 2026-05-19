@@ -1,0 +1,2 @@
+motor_name,kv,resistance_mohm,no_load_current_AperV,voltage_min,voltage_max,current_limit,rpm_limit,weight_g
+AT2312_1150_backorder,1150,75,.085,7.2,16.8,25,,60
